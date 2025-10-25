@@ -1,0 +1,162 @@
+{
+  "jobs": [
+    {
+      "id": 1,
+      "title": "UX Designer",
+      "company": "Rakamin",
+      "logo": "/rakamin.png",
+      "type": "Full-Time",
+      "location": "Jakarta Selatan",
+      "salary": "Rp7.000.000 - Rp15.000.000",
+      "description": [
+        "Develop, test, and maintain responsive, high-performance web applications using modern front-end technologies.",
+        "Collaborate with UI/UX designers to translate wireframes and prototypes into functional code.",
+        "Integrate front-end components with APIs and backend services.",
+        "Ensure cross-browser compatibility and optimize applications for maximum speed and scalability.",
+        "Participate in code reviews and contribute to continuous improvement."
+      ],
+      "postedAt": "2025-10-01"
+    },
+    {
+      "id": 2,
+      "title": "Frontend Developer",
+      "company": "PixelStudio",
+      "logo": "/rakamin.png",
+      "type": "Full-Time",
+      "location": "Jakarta Pusat",
+      "salary": "Rp8.000.000 - Rp18.000.000",
+      "description": [
+        "Build reusable UI components with React and TypeScript.",
+        "Work closely with designers to implement pixel-perfect UIs.",
+        "Optimize bundle size and runtime performance.",
+        "Write unit and integration tests for front-end modules."
+      ],
+      "postedAt": "2025-09-25"
+    },
+    {
+      "id": 3,
+      "title": "Product Designer",
+      "company": "Nusantara Labs",
+      "logo": "/rakamin.png",
+      "type": "Contract",
+      "location": "Bandung",
+      "salary": "Rp10.000.000 - Rp20.000.000",
+      "description": [
+        "Lead product design for core features and user flows.",
+        "Conduct user research and usability testing.",
+        "Create high-fidelity prototypes and design systems."
+      ],
+      "postedAt": "2025-10-10"
+    },
+    {
+      "id": 4,
+      "title": "UI Engineer",
+      "company": "JagoTech",
+      "logo": "/rakamin.png",
+      "type": "Part-Time",
+      "location": "Remote",
+      "salary": "Rp5.000.000 - Rp9.000.000",
+      "description": [
+        "Implement accessible and responsive UI components.",
+        "Collaborate with backend engineers to consume APIs.",
+        "Maintain component library and documentation."
+      ],
+      "postedAt": "2025-10-15"
+    },
+    {
+      "id": 5,
+      "title": "Interaction Designer",
+      "company": "KopiKart",
+      "logo": "/rakamin.png",
+      "type": "Full-Time",
+      "location": "Surabaya",
+      "salary": "Rp6.000.000 - Rp12.000.000",
+      "description": [
+        "Design interaction patterns and micro-interactions.",
+        "Work on motion design and prototyping.",
+        "Ensure consistency across product experiences."
+      ],
+      "postedAt": "2025-10-18"
+    },
+    {
+      "id": 6,
+      "title": "Backend Developer",
+      "company": "ByteWorks",
+      "logo": "/rakamin.png",
+      "type": "Full-Time",
+      "location": "Jakarta Barat",
+      "salary": "Rp9.000.000 - Rp20.000.000",
+      "description": [
+        "Design and build RESTful APIs with Node.js and Express.",
+        "Implement database schemas and optimize queries.",
+        "Ensure security, scalability, and maintainability of services.",
+        "Collaborate with front-end team to define API contracts."
+      ],
+      "postedAt": "2025-10-12"
+    },
+    {
+      "id": 7,
+      "title": "DevOps Engineer",
+      "company": "CloudOps",
+      "logo": "/rakamin.png",
+      "type": "Full-Time",
+      "location": "Jakarta Selatan",
+      "salary": "Rp10.000.000 - Rp22.000.000",
+      "description": [
+        "Maintain CI/CD pipelines and infrastructure as code.",
+        "Monitor system performance and implement alerting.",
+        "Automate deployment, scaling, and recovery processes.",
+        "Work with teams to improve reliability and security."
+      ],
+      "postedAt": "2025-10-05"
+    },
+    {
+      "id": 8,
+      "title": "Data Scientist",
+      "company": "Analytica",
+      "logo": "/rakamin.png",
+      "type": "Contract",
+      "location": "Bandung",
+      "salary": "Rp12.000.000 - Rp25.000.000",
+      "description": [
+        "Analyze large datasets to extract actionable insights.",
+        "Build predictive models and evaluate performance.",
+        "Communicate findings to stakeholders with visualizations.",
+        "Collaborate with engineering to productionize models."
+      ],
+      "postedAt": "2025-10-08"
+    },
+    {
+      "id": 9,
+      "title": "Mobile Developer",
+      "company": "AppForge",
+      "logo": "/rakamin.png",
+      "type": "Full-Time",
+      "location": "Yogyakarta",
+      "salary": "Rp7.500.000 - Rp16.000.000",
+      "description": [
+        "Develop native and cross-platform mobile apps (React Native/Flutter).",
+        "Ensure app performance and responsiveness on multiple devices.",
+        "Integrate mobile apps with backend APIs.",
+        "Participate in app store submission and maintenance."
+      ],
+      "postedAt": "2025-10-14"
+    },
+    {
+      "id": 10,
+      "title": "QA Engineer",
+      "company": "TestLab",
+      "logo": "/rakamin.png",
+      "type": "Part-Time",
+      "location": "Remote",
+      "salary": "Rp4.500.000 - Rp8.000.000",
+      "description": [
+        "Write and run automated test suites (E2E, integration).",
+        "Perform manual exploratory testing and report issues.",
+        "Collaborate with developers to reproduce and fix bugs.",
+        "Improve QA processes and testing coverage."
+      ],
+      "postedAt": "2025-10-20"
+    }
+  ]
+}
