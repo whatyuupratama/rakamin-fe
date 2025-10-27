@@ -1,106 +1,55 @@
-'use client';
 import React from 'react';
 import { FcGoogle } from 'react-icons/fc';
 import { IoIosKey } from 'react-icons/io';
 import Rakamin from '@/app/components/atom/Rakamin';
-import { useState } from 'react';
+import { MdOutlineMailOutline } from 'react-icons/md';
 import Input from '../components/Input';
-const allowedEmails = ['wahyufiver.id@gmail.com'];
-import { AiOutlineCheck } from 'react-icons/ai';
-import { FiAlertTriangle } from 'react-icons/fi';
-
-async function checkEmailInDb(
-  email: string
-): Promise<{ found: boolean; message: string }> {
-  // simulate async DB lookup
-  await new Promise((resolve) => setTimeout(resolve, 700));
-  const found = allowedEmails.includes(email.toLowerCase().trim());
-  return {
-    found,
-    message: found ? 'Alamat email teridentikasi' : 'Alamat email tidak valid',
-  };
-}
+import Link from 'next/link';
 const RegisForm = () => {
-  const [email, setEmail] = useState<string>('');
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setSuccess(null);
-
-    if (!email) {
-      setError('masukan alamat email');
-      return;
-    }
-    setLoading(true);
-    try {
-      const res = await checkEmailInDb(email);
-      if (res.found) {
-        setSuccess(res.message);
-      } else {
-        setError(res.message);
-      }
-    } catch {
-      setEmail('kesalahan harap ulangi lagi');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className='flex flex-col'>
       <Rakamin className='py-5' />
-      <form
-        onSubmit={handleSubmit}
-        className='px-8 py-10 rounded-lg shadow-md w-[500px] bg-white '
-      >
+      <div className='px-8 py-10 rounded-lg shadow-md w-[500px] bg-white '>
         <div className='mb-6 text-start '>
-          <div className='flex flex-col gap-2 '>
+          <div className='flex flex-col gap-2'>
             {' '}
             <h1 className='text-xl font-semibold text-gray-800'>
               Bergabung dengan Rakamin
             </h1>
             <p className='text-sm text-gray-500 mt-1'>
               Sudah punya akun?{' '}
-              <span className='text-[#01959F] font-medium cursor-pointer hover:underline'>
+              <Link
+                href={'/user'}
+                className='text-[#01959F] font-medium cursor-pointer hover:underline'
+              >
                 Masuk
-              </span>
+              </Link>
             </p>
           </div>
         </div>
 
-        <div className='flex flex-col gap-6'>
-          <div className='text-sm '>
-            <Input
-              htmlFor='email'
-              id='email'
-              typeinput='email'
-              label='Alamat Email'
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-          {success && (
-            <div className='flex justify-start items-center gap-2 text-sm text-green-700 rounded'>
-              <AiOutlineCheck className='text-lg' /> {success}
-            </div>
-          )}
-          {error && (
-            <div className='flex justify-start items-center gap-2 text-sm text-red-700 rounded'>
-              <FiAlertTriangle className='text-lg' /> {error}
-            </div>
-          )}
+        <div className='text-sm flex flex-col gap-2 mb-4'>
+          <Input
+            htmlFor='email'
+            id='email'
+            typeinput='email'
+            label='Alamat Email'
+          />
+          <Input
+            htmlFor='email'
+            id='email'
+            typeinput='password'
+            label='Kata sandi'
+          />
+        </div>
 
-          <div className='w-full'>
-            <button
-              type='submit'
-              className='w-full bg-[#FBC037] py-3 rounded-lg text-black font-medium hover:bg-[#e5ab2f] transition-all'
-            >
-              Daftar dengan Email
-            </button>
-          </div>
+        <div className='w-full'>
+          <button
+            type='submit'
+            className='w-full bg-[#FBC037] py-2 rounded-lg text-black font-medium hover:bg-[#e5ab2f] transition-all'
+          >
+            Daftar dengan Email
+          </button>
         </div>
 
         <div className='flex items-center gap-2 text-gray-500 pt-6 pb-2'>
@@ -110,6 +59,15 @@ const RegisForm = () => {
         </div>
 
         <div className='flex flex-col gap-3 pt-2 text-sm'>
+          <Link href={'/auth/register/magic-link'}>
+            <button
+              type='button'
+              className='w-full py-3 border border-gray-300 rounded-lg flex items-center justify-center gap-2 text-gray-700 font-medium hover:bg-gray-50 transition-all'
+            >
+              <MdOutlineMailOutline className='text-xl' />
+              Kirim link melalui email
+            </button>
+          </Link>
           <button
             type='button'
             className='w-full py-3 border border-gray-300 rounded-lg flex items-center justify-center gap-2 text-gray-700 font-medium hover:bg-gray-50 transition-all'
@@ -118,7 +76,7 @@ const RegisForm = () => {
             Daftar dengan Google
           </button>
         </div>
-      </form>
+      </div>
     </div>
   );
 };

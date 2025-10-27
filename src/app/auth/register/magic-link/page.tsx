@@ -1,9 +1,9 @@
 import React from 'react';
-import RegisForm from './RegisForm';
+import RegisMagicLink from './RegisMagicLink';
 const Page = () => {
   return (
     <div className='min-h-screen flex justify-center items-center bg-white-50'>
-      <RegisForm />
+      <RegisMagicLink />
     </div>
   );
 };
