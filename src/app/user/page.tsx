@@ -11,10 +11,17 @@ const Page: React.FC = () => {
   const [job, setJob] = useState<typeCardJob[]>([]);
   const [selectedJob, setSelectedJob] = useState<typeCardJob | null>(null);
   useEffect(() => {
-    axios.get('http://localhost:8000/jobs').then((response) => {
-      setJob(response.data);
-      setSelectedJob(response.data[0] ?? null);
-    });
+    axios
+      .get('/api/jobs')
+      .then((response) => {
+        setJob(response.data);
+        setSelectedJob(response.data[0] ?? null);
+      })
+      .catch((error) => {
+        console.error('Failed to load jobs', error);
+        setJob([]);
+        setSelectedJob(null);
+      });
   }, []);
 
   return (
