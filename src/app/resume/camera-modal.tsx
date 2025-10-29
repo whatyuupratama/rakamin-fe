@@ -64,46 +64,6 @@ export default function CameraCaptureModal({
     };
   }, [countdownTimer]);
 
-  // After a photo is captured, hide the retake/confirm controls for 6 seconds
-  useEffect(() => {
-    if (!capturedImage) {
-      // ensure no lingering post-capture timer
-      if (postCaptureIntervalRef.current) {
-        clearInterval(postCaptureIntervalRef.current);
-        postCaptureIntervalRef.current = null;
-      }
-      setPostCaptureTimer(null);
-      setShowCaptureControls(true);
-      return;
-    }
-
-    // When a new image is captured, start a 6-second timer before showing controls
-    setShowCaptureControls(false);
-    setPostCaptureTimer(6);
-
-    postCaptureIntervalRef.current = setInterval(() => {
-      setPostCaptureTimer((prev) => {
-        if (!prev || prev <= 1) {
-          // show controls and clear timer
-          setShowCaptureControls(true);
-          if (postCaptureIntervalRef.current) {
-            clearInterval(postCaptureIntervalRef.current);
-            postCaptureIntervalRef.current = null;
-          }
-          return null;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => {
-      if (postCaptureIntervalRef.current) {
-        clearInterval(postCaptureIntervalRef.current);
-        postCaptureIntervalRef.current = null;
-      }
-    };
-  }, [capturedImage]);
-
   useEffect(() => {
     if (!isOpen || capturedImage) return;
 
