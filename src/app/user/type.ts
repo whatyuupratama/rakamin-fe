@@ -1,11 +1,3 @@
-export interface typeCardJob {
-  id: number;
-  title: string;
-  company: string;
-  logo: string;
-  type: string;
-  location: string;
-  salary: string;
-  description: string;
-  postedAt: string;
-}
+import type { JobEntry } from '@/lib/jobStorage';
+
+export type typeCardJob = JobEntry;

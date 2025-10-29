@@ -4,6 +4,14 @@ import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useToast } from '@/components/ui/toast';
+import {
+  appendJobEntry,
+  ApplicationFormShape,
+  JobEntry,
+  loadJobStorage,
+  saveJobStorage,
+} from '@/lib/jobStorage';
 
 interface CreateJobModalProps {
   isOpen: boolean;
@@ -22,7 +30,7 @@ const profileFieldMap: Array<{ key: string; label: string }> = [
   { key: 'date_of_birth', label: 'Date of birth' },
 ];
 
-const DEFAULT_APPLICATION_FORM = {
+const DEFAULT_APPLICATION_FORM: ApplicationFormShape = {
   sections: [
     {
       title: 'Minimum Profile Information Required',
@@ -50,6 +58,7 @@ export default function CreateJobModal({
   const [candidates, setCandidates] = useState('');
   const [minSalary, setMinSalary] = useState('');
   const [maxSalary, setMaxSalary] = useState('');
+  const { publish } = useToast();
   // helpers for IDR formatting
   const formatIDR = (value: string) => {
     const digits = String(value).replace(/\D/g, '');
@@ -64,51 +73,62 @@ export default function CreateJobModal({
     if (!digits) return 0;
     return Number(digits);
   };
-  const [applicationForm, setApplicationForm] = useState<any | null>(null);
-
-  if (!isOpen) return null;
+  const [applicationForm, setApplicationForm] =
+    useState<ApplicationFormShape | null>(null);
 
   useEffect(() => {
-    // load application form structure from localStorage or initialize default
-    try {
-      const raw = localStorage.getItem('application_form');
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        // support both { sections: [...] } and { application_form: { sections: [...] } }
-        if (parsed && parsed.sections) {
-          setApplicationForm(parsed);
-        } else if (parsed && parsed.application_form) {
-          setApplicationForm(parsed.application_form);
-        } else {
-          setApplicationForm(DEFAULT_APPLICATION_FORM);
-          localStorage.setItem(
-            'application_form',
-            JSON.stringify(DEFAULT_APPLICATION_FORM)
-          );
+    if (!isOpen) return;
+
+    const ensureApplicationForm = () => {
+      // prefer draft form, then latest job form, then legacy keys, then default
+      const storage = loadJobStorage();
+      const latestJob = storage.jobs?.[storage.jobs.length - 1];
+      const draftForm = storage.draft?.applicationForm;
+      const latestForm = latestJob?.applicationForm;
+
+      const candidateForms: Array<ApplicationFormShape | null> = [
+        draftForm,
+        latestForm,
+      ];
+
+      try {
+        const legacy = localStorage.getItem('application_form');
+        if (legacy) {
+          const parsed = JSON.parse(legacy);
+          candidateForms.push(parsed?.application_form ?? parsed ?? null);
         }
-      } else {
-        setApplicationForm(DEFAULT_APPLICATION_FORM);
-        localStorage.setItem(
-          'application_form',
-          JSON.stringify(DEFAULT_APPLICATION_FORM)
-        );
+      } catch {
+        candidateForms.push(null);
       }
-    } catch (e) {
-      // fallback
-      setApplicationForm(DEFAULT_APPLICATION_FORM);
-      localStorage.setItem(
-        'application_form',
-        JSON.stringify(DEFAULT_APPLICATION_FORM)
+
+      candidateForms.push(DEFAULT_APPLICATION_FORM);
+
+      const resolvedForm = candidateForms.find(
+        (form): form is ApplicationFormShape =>
+          Boolean(form?.sections && Array.isArray(form.sections))
       );
-    }
-  }, []);
+
+      const nextForm = resolvedForm ?? DEFAULT_APPLICATION_FORM;
+      setApplicationForm(nextForm);
+      saveJobStorage({
+        ...storage,
+        draft: { applicationForm: nextForm },
+      });
+    };
+
+    ensureApplicationForm();
+  }, [isOpen]);
 
   // helper to persist applicationForm to localStorage
-  const persistApplicationForm = (next: any) => {
+  const persistApplicationForm = (next: ApplicationFormShape) => {
     setApplicationForm(next);
     try {
-      localStorage.setItem('application_form', JSON.stringify(next));
-    } catch (e) {
+      const storage = loadJobStorage();
+      saveJobStorage({
+        ...storage,
+        draft: { applicationForm: next },
+      });
+    } catch {
       // ignore localStorage errors
       // console.warn('Failed to save application_form', e);
     }
@@ -118,37 +138,43 @@ export default function CreateJobModal({
 
   // helper to get field entry by key
   const getFieldEntry = (key: string) => {
-    return section?.fields?.find((f: any) => f.key === key) ?? null;
+    return section?.fields?.find((field) => field.key === key) ?? null;
   };
 
   const setFieldRequired = (key: string, required: boolean) => {
-    const current = applicationForm ?? { sections: [] };
+    const current = applicationForm ?? DEFAULT_APPLICATION_FORM;
     const sec = current.sections?.[0] ?? { title: '', fields: [] };
     const fields = Array.isArray(sec.fields) ? [...sec.fields] : [];
-    const idx = fields.findIndex((f: any) => f.key === key);
+    const idx = fields.findIndex((field) => field.key === key);
     if (idx >= 0) {
       // when setting required/optional, ensure field is visible
       fields[idx] = { ...fields[idx], validation: { required }, hidden: false };
     } else {
       fields.push({ key, validation: { required }, hidden: false });
     }
-    const next = { ...current, sections: [{ ...sec, fields }] };
+    const next: ApplicationFormShape = {
+      ...current,
+      sections: [{ ...sec, fields }],
+    };
     persistApplicationForm(next);
   };
 
   // mark field as hidden (Off) without removing it from storage
   const setFieldHidden = (key: string, hidden: boolean) => {
-    const current = applicationForm ?? { sections: [] };
+    const current = applicationForm ?? DEFAULT_APPLICATION_FORM;
     const sec = current.sections?.[0] ?? { title: '', fields: [] };
     const fields = Array.isArray(sec.fields) ? [...sec.fields] : [];
-    const idx = fields.findIndex((f: any) => f.key === key);
+    const idx = fields.findIndex((field) => field.key === key);
     if (idx >= 0) {
       fields[idx] = { ...fields[idx], hidden };
     } else {
       // create entry as hidden (default optional)
       fields.push({ key, validation: { required: false }, hidden });
     }
-    const next = { ...current, sections: [{ ...sec, fields }] };
+    const next: ApplicationFormShape = {
+      ...current,
+      sections: [{ ...sec, fields }],
+    };
     persistApplicationForm(next);
   };
 
@@ -168,34 +194,78 @@ export default function CreateJobModal({
   }, [jobName, jobType, description, candidates]);
 
   const handlePublish = () => {
-    const job_posting = {
-      jobName: jobName.trim(),
-      jobType: jobType.trim(),
-      description: description.trim(),
-      candidates: candidates.trim(),
-      minSalary: minSalary.trim(),
-      maxSalary: maxSalary.trim(),
-      createdAt: new Date().toISOString(),
+    const createdAt = new Date().toISOString();
+    const candidatesNeeded = Number(candidates);
+    const minSalaryNumber = numericFromFormatted(minSalary) || null;
+    const maxSalaryNumber = numericFromFormatted(maxSalary) || null;
+    const applicationFormSnapshot = applicationForm ?? DEFAULT_APPLICATION_FORM;
+
+    const jobEntry: JobEntry = {
+      id: `job-${Date.now()}`,
+      status: 'draft',
+      metadata: {
+        createdAt,
+      },
+      job: {
+        name: jobName.trim(),
+        type: jobType.trim(),
+        description: description.trim(),
+        meta: undefined,
+      },
+      hiring: {
+        candidatesNeeded: Number.isFinite(candidatesNeeded) ? candidatesNeeded : 0,
+      },
+      salary: {
+        currency: 'IDR',
+        range: {
+          min: minSalaryNumber,
+          max: maxSalaryNumber,
+        },
+        formatted: {
+          min: minSalary.trim(),
+          max: maxSalary.trim(),
+        },
+      },
+      applicationForm: applicationFormSnapshot,
     };
 
     try {
-      localStorage.setItem('job_posting', JSON.stringify(job_posting));
-      if (applicationForm) {
-        localStorage.setItem(
+      const nextStorage = appendJobEntry(jobEntry);
+
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem('job_posting', JSON.stringify(jobEntry));
+        window.localStorage.setItem(
           'application_form',
-          JSON.stringify(applicationForm)
+          JSON.stringify(applicationFormSnapshot)
         );
       }
-      // simple feedback and close
-      // In a real app, replace alert with toast notification
-      alert('Job published and application form saved locally.');
+
+      // quick dev helper so the user can inspect the saved payload
+      console.info('Job publish storage snapshot', {
+        latestJob: jobEntry,
+        history: nextStorage,
+      });
+
+      publish({
+        title: 'Job vacancy successfully created',
+        description: 'Your posting is saved to this device.',
+        variant: 'success',
+      });
       onClose();
-    } catch (e) {
+    } catch {
       // fallback: notify user
       // console.error(e);
-      alert('Failed to save job data to localStorage.');
+      publish({
+        title: 'Failed to save job data',
+        description: 'Please check storage availability and try again.',
+        variant: 'error',
+      });
     }
   };
+
+  if (!isOpen) {
+    return null;
+  }
 
   return (
     <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'>

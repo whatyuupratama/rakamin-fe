@@ -21,7 +21,7 @@ export default function SubmitSuccess({ onClose }: { onClose?: () => void }) {
           🎉 Your application was sent!
         </h2>
         <p className='text-sm text-muted-foreground mb-6 w-5/6 mx-auto'>
-          Congratulations! You've taken the first step towards a rewarding
+          Congratulations! You&apos;ve taken the first step towards a rewarding
           career at Rakamin. We look forward to learning more about you during
           the application process.
         </p>

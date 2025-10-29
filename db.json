@@ -158,5 +158,61 @@
       ],
       "postedAt": "2025-10-20"
     }
+  ],
+  "users": [
+    {
+      "id": "952cff13-00d3-4c4a-b345-8f7a18e4c068",
+      "email": "wahyufiver.id@gmail.com",
+      "createdAt": "2025-10-29T14:06:55.231Z",
+      "updatedAt": "2025-10-29T16:02:24.033Z",
+      "lastLoginAt": "2025-10-29T16:02:24.033Z"
+    },
+    {
+      "id": "1d085a45-af3f-45e1-a851-b193acc9d36d",
+      "email": "figmaa.ui@gmail.com",
+      "createdAt": "2025-10-29T14:41:21.974Z",
+      "updatedAt": "2025-10-29T14:41:21.974Z"
+    }
+  ],
+  "magicLinks": [
+    {
+      "tokenHash": "ed0bb6638ddde747d86030b04ef4501b0cab9900bf6b6c57069cae04f5553a7c",
+      "email": "wahyufiver.id@gmail.com",
+      "redirectTo": "/user",
+      "expiresAt": "2025-10-29T15:29:22.268Z",
+      "createdAt": "2025-10-29T14:59:22.268Z",
+      "purpose": "login",
+      "metadata": {
+        "previewUrl": "http://localhost:3000/auth/magic-link/verify?token=OTPhCcyP-6CvETAvxDG5vUcN1aS_JyfVy_bMELRktf8",
+        "requestIp": "::1",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+      }
+    },
+    {
+      "tokenHash": "0e28ad09426652b71fccc549dc42df4dedc84d3173234047f8400744500c369d",
+      "email": "wahyufiver.id@gmail.com",
+      "redirectTo": "/user",
+      "expiresAt": "2025-10-29T15:48:13.518Z",
+      "createdAt": "2025-10-29T15:18:13.518Z",
+      "purpose": "login",
+      "metadata": {
+        "previewUrl": "http://localhost:3000/auth/magic-link/verify?token=OxwriXgq58CbViNPhPllpIwdCrjHKLSLSn1iODBXjZo",
+        "requestIp": "::1",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+      }
+    },
+    {
+      "tokenHash": "af15d426820aebcdfee424fd02c8cbeedbed3e15fb1c2f65f4f6f78102081eb0",
+      "email": "wahyufiver.id@gmail.com",
+      "redirectTo": "/user",
+      "expiresAt": "2025-10-29T15:52:37.631Z",
+      "createdAt": "2025-10-29T15:22:37.631Z",
+      "purpose": "login",
+      "metadata": {
+        "previewUrl": "http://localhost:3000/auth/magic-link/verify?token=E685EaZ9T5mqZNetvMbnXI7-jx-kPW3mDe57VGDoHmA",
+        "requestIp": "::1",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+      }
+    }
   ]
 }

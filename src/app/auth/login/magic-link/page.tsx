@@ -1,14 +1,14 @@
 import React, { Suspense } from 'react';
-import LoginForm from './LoginForm';
+import MagicLinkAuthCard from '../../components/MagicLinkAuthCard';
 
-const Page = () => {
+const MagicLinkLoginPage = () => {
   return (
     <div className='min-h-screen flex justify-center items-center bg-white-50'>
       <Suspense fallback={null}>
-        <LoginForm />
+        <MagicLinkAuthCard mode='login' />
       </Suspense>
     </div>
   );
 };
 
-export default Page;
+export default MagicLinkLoginPage;

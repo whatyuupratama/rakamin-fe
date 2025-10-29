@@ -16,97 +16,148 @@ import {
 import { format } from 'date-fns';
 import { id as idLocale } from 'date-fns/locale';
 import { CalendarIcon, Camera, Search, ChevronDown } from 'lucide-react';
+import Image from 'next/image';
 import { INDONESIAN_DISTRICTS, COUNTRY_CODES } from '@/lib/data';
 import { cn } from '@/lib/utils';
 import CameraCaptureModal from './camera-modal';
 import SubmitSuccess from '@/components/SubmitSuccess';
 import { useRouter } from 'next/navigation';
+import { IoArrowBackSharp } from 'react-icons/io5';
+import Link from 'next/link';
+
+const STORAGE_KEY = 'applicationFormData';
+const APPLICATIONS_KEY = 'applications';
+const ACTIVE_JOB_KEY = 'active_job';
+
+type FormDataState = {
+  fullName: string;
+  dateOfBirth: Date | undefined;
+  gender: string;
+  domicile: string;
+  countryCode: string;
+  phoneNumber: string;
+  email: string;
+  linkedinUrl: string;
+  photoProfile: string | null;
+};
+
+type ActiveJobState = {
+  id: string | null;
+  title: string;
+  company: string;
+} | null;
+
+interface StoredApplication {
+  fullName: string;
+  dateOfBirth: string | null;
+  gender: string;
+  domicile: string;
+  countryCode: string;
+  phoneNumber: string;
+  email: string;
+  linkedinUrl: string;
+  photoProfile: string | null;
+  submittedAt: string;
+  jobId: string | null;
+  jobName: string;
+}
+
+const createEmptyFormData = (): FormDataState => ({
+  fullName: '',
+  dateOfBirth: undefined,
+  gender: '',
+  domicile: '',
+  countryCode: '+62',
+  phoneNumber: '',
+  email: '',
+  linkedinUrl: '',
+  photoProfile: null,
+});
+
+const readActiveJobFromStorage = (): ActiveJobState => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(ACTIVE_JOB_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as {
+      id?: string | null;
+      title?: string;
+      company?: string;
+    } | null;
+    if (!parsed || typeof parsed !== 'object') return null;
+    return {
+      id: parsed.id ?? null,
+      title: String(parsed.title ?? 'Unknown role'),
+      company: String(parsed.company ?? 'Rakamin'),
+    };
+  } catch (error) {
+    console.warn('Failed to read active job from localStorage', error);
+    return null;
+  }
+};
+
+const readFormDataFromStorage = (): FormDataState => {
+  if (typeof window === 'undefined') return createEmptyFormData();
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return createEmptyFormData();
+    const parsed = JSON.parse(raw) as Partial<Omit<FormDataState, 'dateOfBirth'>> & {
+      dateOfBirth?: string | null;
+    };
+
+    return {
+      ...createEmptyFormData(),
+      ...parsed,
+      dateOfBirth: parsed.dateOfBirth
+        ? new Date(parsed.dateOfBirth)
+        : undefined,
+    };
+  } catch (error) {
+    console.error('Failed to load application form data', error);
+    return createEmptyFormData();
+  }
+};
+
+const serializeFormData = (value: FormDataState) => ({
+  ...value,
+  dateOfBirth: value.dateOfBirth ? value.dateOfBirth.toISOString() : null,
+});
+
 export default function ApplicationForm() {
   const router = useRouter();
-  const [formData, setFormData] = useState({
-    fullName: '',
-    dateOfBirth: undefined as Date | undefined,
-    gender: '',
-    domicile: '',
-    countryCode: '+62',
-    phoneNumber: '',
-    email: '',
-    linkedinUrl: '',
-    photoProfile: null as string | null,
-  });
-
-  const STORAGE_KEY = 'applicationFormData';
-  const APPLICATIONS_KEY = 'applications';
+  const [formData, setFormData] = useState<FormDataState>(() =>
+    readFormDataFromStorage()
+  );
+  const [activeJob, setActiveJob] = useState<ActiveJobState>(() =>
+    readActiveJobFromStorage()
+  );
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        console.log('Loaded applicationFormData from localStorage:', parsed);
+    if (typeof window === 'undefined') return;
 
-        try {
-          const appsRaw = localStorage.getItem(APPLICATIONS_KEY);
-          if (appsRaw)
-            console.log(
-              'Existing applications in localStorage:',
-              JSON.parse(appsRaw)
-            );
-        } catch (e) {
-          console.error(
-            'Failed to read existing applications from localStorage',
-            e
-          );
-        }
+    const handleActiveJobUpdate = () => {
+      setActiveJob(readActiveJobFromStorage());
+    };
 
-        if (parsed.dateOfBirth)
-          parsed.dateOfBirth = new Date(parsed.dateOfBirth);
-        setFormData((prev) => ({ ...prev, ...parsed }));
-      } else {
-        const example = {
-          fullName: 'Budi Santoso',
-          dateOfBirth: new Date(1995, 0, 15).toISOString(),
-          gender: 'male',
-          domicile: 'Jakarta Selatan',
-          countryCode: '+62',
-          phoneNumber: '81234567890',
-          email: 'budi.santoso@example.com',
-          linkedinUrl: 'https://linkedin.com/in/budisantoso',
-          photoProfile: null,
-        };
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(example));
-        console.log(
-          'No applicationFormData found — seeded example data:',
-          example
-        );
+    const raf = window.requestAnimationFrame(() => {
+      handleActiveJobUpdate();
+    });
 
-        // convert date back to Date before setting state
-        const parsed = {
-          ...example,
-          dateOfBirth: new Date(example.dateOfBirth),
-        };
-        setFormData((prev) => ({ ...prev, ...parsed }));
-      }
-    } catch (e) {
-      console.error(
-        'Failed to load/seed applicationFormData from localStorage',
-        e
-      );
-    }
+    window.addEventListener('active-job:updated', handleActiveJobUpdate);
+
+    return () => {
+      window.cancelAnimationFrame(raf);
+      window.removeEventListener('active-job:updated', handleActiveJobUpdate);
+    };
   }, []);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     try {
-      const copy = {
-        ...formData,
-        dateOfBirth: formData.dateOfBirth
-          ? formData.dateOfBirth.toISOString()
-          : null,
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(copy));
-      console.log('Saved applicationFormData to localStorage:', copy);
-    } catch (e) {
-      console.error('Failed to save applicationFormData to localStorage', e);
+      const payload = serializeFormData(formData);
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    } catch (error) {
+      console.error('Failed to save applicationFormData to localStorage', error);
     }
   }, [formData]);
 
@@ -181,24 +232,28 @@ export default function ApplicationForm() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      console.log('Form submitted:', formData);
-      // append submitted form to applications array in localStorage
-      try {
-        const entry = {
-          ...formData,
-          dateOfBirth: formData.dateOfBirth
-            ? formData.dateOfBirth.toISOString()
-            : null,
-          submittedAt: new Date().toISOString(),
-        };
+      if (typeof window !== 'undefined') {
+        try {
+          const entry: StoredApplication = {
+            ...serializeFormData(formData),
+            submittedAt: new Date().toISOString(),
+            jobId: activeJob?.id ?? null,
+            jobName: activeJob?.title ?? '',
+          };
 
-        const appsRaw = localStorage.getItem(APPLICATIONS_KEY);
-        const apps = appsRaw ? (JSON.parse(appsRaw) as any[]) : [];
-        const updated = [...apps, entry];
-        localStorage.setItem(APPLICATIONS_KEY, JSON.stringify(updated));
-        console.log('Saved applications to localStorage:', updated);
-      } catch (e) {
-        console.error('Failed to save application to localStorage', e);
+          const appsRaw = window.localStorage.getItem(APPLICATIONS_KEY);
+          const apps = appsRaw
+            ? (JSON.parse(appsRaw) as StoredApplication[])
+            : [];
+          const updated = [...apps, entry];
+          window.localStorage.setItem(
+            APPLICATIONS_KEY,
+            JSON.stringify(updated)
+          );
+          window.dispatchEvent(new CustomEvent('applications:updated'));
+        } catch (error) {
+          console.error('Failed to save application to localStorage', error);
+        }
       }
 
       // show success screen instead of alert
@@ -235,16 +290,21 @@ export default function ApplicationForm() {
       <div className='max-w-3xl mx-auto px-4 py-6 h-screen flex flex-col'>
         <Card className='p-8 flex-1 flex flex-col overflow-hidden'>
           <div className='flex items-center gap-4 mb-4'>
-            <button className='text-muted-foreground hover:text-foreground'>
-              ← Back
-            </button>
-            <h1 className='text-2xl font-bold'>Apply Front End at Rakamin</h1>
+            <Link href={'/user'}>
+              <button className='text-muted-foreground hover:text-foreground border p-2 rounded-lg shadow-2xl cursor-pointer'>
+                <IoArrowBackSharp />
+              </button>
+            </Link>
+            <h1 className='text-xl text-gray-500 font-bold'>
+              {activeJob
+                ? `Apply ${activeJob.title} at Rakamin`
+                : 'Apply for a Role'}
+            </h1>
             <span className='ml-auto text-sm text-muted-foreground'>
               This field required to fill
             </span>
           </div>
 
-          {/* Scrollable content area inside the card (cap height so content doesn't push submit out of view) */}
           <div
             className='flex-1 overflow-y-auto pr-2'
             style={{ maxHeight: 'calc(100vh - 260px)' }}
@@ -257,10 +317,13 @@ export default function ApplicationForm() {
                   <div className='flex justify-start'>
                     <div className='w-32 h-32 rounded-lg bg-blue-100 flex items-center justify-center overflow-hidden'>
                       {formData.photoProfile ? (
-                        <img
+                        <Image
                           src={formData.photoProfile || '/placeholder.svg'}
                           alt='Profile'
-                          className='w-full h-full object-cover'
+                          width={300}
+                          height={300}
+                          className='h-full w-full object-cover'
+                          unoptimized
                         />
                       ) : (
                         <div className='text-blue-400'>

@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
 import Image from 'next/image';
@@ -20,26 +20,15 @@ export default function CameraCaptureModal({
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [currentStep, setCurrentStep] = useState<PoseStep>(1);
-  const [detectedPose, setDetectedPose] = useState<HandPose>('none');
   const [isLoading, setIsLoading] = useState(true);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [timeRemaining, setTimeRemaining] = useState(180);
   const [correctPoseHeldFrames, setCorrectPoseHeldFrames] = useState(0);
   const [countdownTimer, setCountdownTimer] = useState<number | null>(null);
-  const [postCaptureTimer, setPostCaptureTimer] = useState<number | null>(null);
-  const [showCaptureControls, setShowCaptureControls] = useState(true);
   const detectionIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const postCaptureIntervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  const poseSequence: HandPose[] = ['one', 'two', 'three'];
-
-  const poseDescriptions: Record<PoseStep, string> = {
-    1: 'Show 1 Finger',
-    2: 'Show 2 Fingers (Peace)',
-    3: 'Show 3 Fingers',
-  };
 
   useEffect(() => {
     if (correctPoseHeldFrames >= 10 && currentStep < 3) {
