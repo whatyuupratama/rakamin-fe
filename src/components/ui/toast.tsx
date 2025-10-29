@@ -8,10 +8,10 @@ import React, {
   useEffect,
   useMemo,
   useRef,
+  useState,
 } from 'react';
 import { createPortal } from 'react-dom';
 import { CheckCircle2, Info, XCircle, X } from 'lucide-react';
-import { useState } from 'react';
 type ToastVariant = 'success' | 'error' | 'info';
 
 export type ToastPayload = {
@@ -57,11 +57,9 @@ const baseToastClasses =
 
 export function ToastProvider({ children }: PropsWithChildren) {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
-  const [isMounted, setIsMounted] = useState(false);
   const timersRef = useRef<Record<string, number>>({});
 
   useEffect(() => {
-    setIsMounted(true);
     return () => {
       Object.values(timersRef.current).forEach((timerId) => {
         window.clearTimeout(timerId);
@@ -105,7 +103,7 @@ export function ToastProvider({ children }: PropsWithChildren) {
   return (
     <ToastContext.Provider value={contextValue}>
       {children}
-      {isMounted && portalTarget
+      {portalTarget
         ? createPortal(
             <div className='pointer-events-none fixed inset-0 z-60 flex flex-col items-end justify-end gap-3 px-4 py-6 sm:py-8'>
               {toasts.map(({ id, title, description, variant = 'info' }) => {

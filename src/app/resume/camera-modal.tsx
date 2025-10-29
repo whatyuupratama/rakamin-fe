@@ -9,9 +9,6 @@ interface CameraCapturModalProps {
   onCapture: (imageData: string) => void;
 }
 
-type HandPose = 'one' | 'two' | 'three' | 'none';
-type PoseStep = 1 | 2 | 3;
-
 export default function CameraCaptureModal({
   isOpen,
   onClose,
@@ -19,33 +16,17 @@ export default function CameraCaptureModal({
 }: CameraCapturModalProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [currentStep, setCurrentStep] = useState<PoseStep>(1);
   const [isLoading, setIsLoading] = useState(true);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
-  const [timeRemaining, setTimeRemaining] = useState(180);
-  const [correctPoseHeldFrames, setCorrectPoseHeldFrames] = useState(0);
   const [countdownTimer, setCountdownTimer] = useState<number | null>(null);
-  const detectionIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const postCaptureIntervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    if (correctPoseHeldFrames >= 10 && currentStep < 3) {
-      setCurrentStep((prev) => (prev + 1) as PoseStep);
-      setCorrectPoseHeldFrames(0);
-    } else if (correctPoseHeldFrames >= 10 && currentStep === 3) {
-      // Start 3-second countdown after all steps complete
-      setCountdownTimer(3);
-      setCorrectPoseHeldFrames(0);
-    }
-  }, [correctPoseHeldFrames, currentStep]);
+  const detectionIntervalRef = useRef<number | null>(null);
+  const startDelayRef = useRef<number | null>(null);
+  const countdownIntervalRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (countdownTimer === null) return;
 
     if (countdownTimer <= 0) {
-      // Auto-capture when countdown reaches 0
       if (canvasRef.current) {
         const imageData = canvasRef.current.toDataURL('image/jpeg');
         setCapturedImage(imageData);
@@ -54,40 +35,62 @@ export default function CameraCaptureModal({
       return;
     }
 
-    countdownIntervalRef.current = setInterval(() => {
+    if (countdownIntervalRef.current) {
+      window.clearTimeout(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+
+    countdownIntervalRef.current = window.setTimeout(() => {
       setCountdownTimer((prev) => (prev !== null ? prev - 1 : null));
     }, 1000);
 
     return () => {
-      if (countdownIntervalRef.current)
-        clearInterval(countdownIntervalRef.current);
+      if (countdownIntervalRef.current) {
+        window.clearTimeout(countdownIntervalRef.current);
+        countdownIntervalRef.current = null;
+      }
     };
   }, [countdownTimer]);
+
+  const startSimplePoseDetection = useCallback(() => {
+    if (detectionIntervalRef.current) {
+      window.clearInterval(detectionIntervalRef.current);
+      detectionIntervalRef.current = null;
+    }
+
+    detectionIntervalRef.current = window.setInterval(() => {
+      if (!capturedImage && countdownTimer === null) {
+        if (videoRef.current && canvasRef.current) {
+          const ctx = canvasRef.current.getContext('2d');
+          if (ctx) {
+            canvasRef.current.width = videoRef.current.videoWidth;
+            canvasRef.current.height = videoRef.current.videoHeight;
+            ctx.drawImage(videoRef.current, 0, 0);
+          }
+        }
+      }
+    }, 100);
+  }, [capturedImage, countdownTimer]);
 
   useEffect(() => {
     if (!isOpen || capturedImage) return;
 
-    // Run the camera for only 3 seconds, then start the 3-2-1 countdown
-    setTimeRemaining(3);
-    timerIntervalRef.current = setInterval(() => {
-      setTimeRemaining((prev) => {
-        if (prev <= 1) {
-          // Stop the runtime timer and start the visible countdown
-          if (timerIntervalRef.current) {
-            clearInterval(timerIntervalRef.current);
-            timerIntervalRef.current = null;
-          }
-          setCountdownTimer(3);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+    if (startDelayRef.current) {
+      window.clearTimeout(startDelayRef.current);
+      startDelayRef.current = null;
+    }
+
+    startDelayRef.current = window.setTimeout(() => {
+      setCountdownTimer(3);
+    }, 3000);
 
     return () => {
-      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+      if (startDelayRef.current) {
+        window.clearTimeout(startDelayRef.current);
+        startDelayRef.current = null;
+      }
     };
-  }, [isOpen, capturedImage]);
+  }, [capturedImage, isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -103,12 +106,12 @@ export default function CameraCaptureModal({
         });
 
         if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.onloadedmetadata = () => {
-            videoRef.current?.play();
-            setIsLoading(false);
-            startSimplePoseDetection();
-          };
+            videoRef.current.srcObject = stream;
+            videoRef.current.onloadedmetadata = () => {
+              videoRef.current?.play();
+              setIsLoading(false);
+              startSimplePoseDetection();
+            };
         }
       } catch (error) {
         console.error('Error accessing camera:', error);
@@ -118,41 +121,28 @@ export default function CameraCaptureModal({
 
     initializeCamera();
 
+    const videoElement = videoRef.current;
+
     return () => {
-      if (videoRef.current?.srcObject) {
-        const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
+      if (videoElement?.srcObject) {
+        const tracks = (videoElement.srcObject as MediaStream).getTracks();
         tracks.forEach((track) => track.stop());
       }
       if (detectionIntervalRef.current) {
-        clearInterval(detectionIntervalRef.current);
+        window.clearInterval(detectionIntervalRef.current);
+        detectionIntervalRef.current = null;
+      }
+      if (startDelayRef.current) {
+        window.clearTimeout(startDelayRef.current);
+        startDelayRef.current = null;
       }
     };
-  }, [isOpen]);
-
-  const startSimplePoseDetection = () => {
-    detectionIntervalRef.current = setInterval(() => {
-      if (!capturedImage && countdownTimer === null) {
-        // Do not auto-increment pose frames — we use a fixed 3s camera runtime
-
-        // Draw camera feed to canvas for capture
-        if (videoRef.current && canvasRef.current) {
-          const ctx = canvasRef.current.getContext('2d');
-          if (ctx) {
-            canvasRef.current.width = videoRef.current.videoWidth;
-            canvasRef.current.height = videoRef.current.videoHeight;
-            ctx.drawImage(videoRef.current, 0, 0);
-          }
-        }
-      }
-    }, 100);
-  };
+  }, [capturedImage, isOpen, startSimplePoseDetection]);
 
   const handleRetake = () => {
     setCapturedImage(null);
-    setCurrentStep(1);
-    setCorrectPoseHeldFrames(0);
     setCountdownTimer(null);
-    setTimeRemaining(3);
+    startSimplePoseDetection();
   };
 
   const handleConfirm = () => {
@@ -161,9 +151,6 @@ export default function CameraCaptureModal({
       onClose();
     }
   };
-
-  const minutes = Math.floor(timeRemaining / 60);
-  const seconds = timeRemaining % 60;
 
   if (!isOpen) return null;
 
@@ -217,13 +204,6 @@ export default function CameraCaptureModal({
 
                 {/* Status Indicator */}
 
-                {/* Progress Bar */}
-                <div className='absolute bottom-0 left-0 right-0 h-1 bg-gray-300'>
-                  <div
-                    className='h-full bg-green-500 transition-all duration-100'
-                    style={{ width: `${(correctPoseHeldFrames / 10) * 100}%` }}
-                  />
-                </div>
               </div>
 
               {/* Instructions */}
@@ -248,10 +228,13 @@ export default function CameraCaptureModal({
             <div className='space-y-4'>
               {/* Captured Image */}
               <div className='bg-gray-100 rounded-lg overflow-hidden aspect-video'>
-                <img
+                <Image
                   src={capturedImage || '/placeholder.svg'}
                   alt='Captured'
-                  className='w-full h-full object-cover'
+                  width={640}
+                  height={480}
+                  className='h-full w-full object-cover'
+                  unoptimized
                 />
               </div>
 
