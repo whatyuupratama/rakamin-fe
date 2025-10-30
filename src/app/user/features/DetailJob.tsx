@@ -68,9 +68,9 @@ export default function DetailJob({ job }: JobSummaryProps) {
                 {job.job.type || 'Unspecified'}
               </span>
               <span className='text-lg'>
-                {job.job.meta?.location ?? 'Location not provided'}
+                {job.job.meta?.location ?? 'Jakarta '}
               </span>
-              <span className='text-gray-500'>
+              <span className='text-gray-500 capitalize'>
                 {job.job.meta?.company ?? 'Internal posting'}
               </span>
             </div>
@@ -93,7 +93,7 @@ export default function DetailJob({ job }: JobSummaryProps) {
           </div>
           <div className='flex items-center gap-2'>
             <TiLocationOutline className='text-base' />
-            {job.job.meta?.location ?? 'Location not provided'}
+            {job.job.meta?.location ?? 'Jakarta, Indonesia'}
           </div>
         </div>
 

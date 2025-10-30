@@ -20,7 +20,7 @@ const UserLayout = async ({ children }: LayoutProps) => {
 
   return (
     <div className='min-h-screen bg-white'>
-      <Navbar userEmail={payload.email} />
+      <Navbar />
       <main className='max-w-7xl mx-auto px-4 sm:px-6'>{children}</main>
     </div>
   );

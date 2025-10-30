@@ -6,11 +6,11 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { IoIosLogOut } from 'react-icons/io';
 
-interface NavbarProps {
-  userEmail?: string;
-}
+// interface NavbarProps {
+//   userEmail?: string;
+// }
 
-const Navbar: React.FC<NavbarProps> = ({ userEmail }) => {
+const Navbar: React.FC = () => {
   const router = useRouter();
   const [nextIsAdmin, setNextIsAdmin] = useState(true);
 
@@ -46,9 +46,9 @@ const Navbar: React.FC<NavbarProps> = ({ userEmail }) => {
                   className='rounded-full w-9 h-9 object-cover border border-gray-300'
                 />
               </Link>
-              {userEmail ? (
+              {/* {userEmail ? (
                 <span className='text-sm text-gray-600 hidden sm:inline'>{userEmail}</span>
-              ) : null}
+              ) : null} */}
               <button
                 type='button'
                 onClick={handleLogout}

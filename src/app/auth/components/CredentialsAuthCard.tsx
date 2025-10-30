@@ -274,7 +274,7 @@ const CredentialsAuthCard = () => {
             <button
               type='submit'
               disabled={isLoading}
-              className='w-full bg-[#FBC037] py-3 rounded-lg  font-medium hover:bg-[#017f86] transition-all disabled:opacity-60 disabled:cursor-not-allowed text-black'
+              className='w-full bg-[#FBC037] py-3 rounded-lg  font-medium hover:bg-[#FBC037]/80 transition-all disabled:opacity-60 disabled:cursor-not-allowed text-black'
             >
               {isLoading ? 'Memproses...' : COPY.buttonLabel}
             </button>

@@ -210,7 +210,7 @@ export default function ManageJobPage() {
                 </span>
                 <span className='inline-flex items-center gap-2 text-slate-500'>
                   <TiLocationOutline className='text-base text-[#01959F]' />
-                  {job.job.meta?.location ?? 'Location not provided'}
+                  {job.job.meta?.location ?? 'Jakarta, Indonesia'}
                 </span>
                 <span className='inline-flex items-center gap-2 text-slate-500'>
                   <PiMoneyWavy className='text-base text-[#01959F]' />

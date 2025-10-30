@@ -52,7 +52,7 @@ const Page: React.FC = () => {
     setSelectedJob((prev) => {
       if (!prev) return nextJobs[0] ?? null;
       const matched = nextJobs.find((entry) => entry.id === prev.id);
-      return matched ?? (nextJobs[0] ?? null);
+      return matched ?? nextJobs[0] ?? null;
     });
   }, []);
 
@@ -90,7 +90,7 @@ const Page: React.FC = () => {
     return jobs.map((entry) => ({
       entry,
       salary: formatSalary(entry),
-      location: entry.job.meta?.location ?? 'Location not provided',
+      location: entry.job.meta?.location ?? 'Jakarta, Indonesia',
       company: entry.job.meta?.company ?? 'Internal posting',
     }));
   }, [jobs]);
@@ -123,7 +123,9 @@ const Page: React.FC = () => {
                   />
 
                   <div className='flex text-left flex-col'>
-                    <h3 className='text-lg'>{entry.job.name || 'Untitled role'}</h3>
+                    <h3 className='text-lg'>
+                      {entry.job.name || 'Untitled role'}
+                    </h3>
                     <p className='text-gray-500'>{company}</p>
                   </div>
                 </header>
@@ -132,12 +134,18 @@ const Page: React.FC = () => {
 
                 <div className='flex flex-col gap-2 mt-auto'>
                   <div className='flex items-center gap-3 text-gray-600'>
-                    <TiLocationOutline className='text-xl text-gray-600' aria-hidden />
+                    <TiLocationOutline
+                      className='text-xl text-gray-600'
+                      aria-hidden
+                    />
                     <span className='text-sm'>{location}</span>
                   </div>
 
                   <div className='flex items-center gap-3 text-gray-600'>
-                    <PiMoneyWavy className='text-xl text-gray-600' aria-hidden />
+                    <PiMoneyWavy
+                      className='text-xl text-gray-600'
+                      aria-hidden
+                    />
                     <span className='text-sm'>{salary}</span>
                   </div>
                 </div>
