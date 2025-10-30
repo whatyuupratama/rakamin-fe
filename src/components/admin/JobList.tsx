@@ -218,7 +218,7 @@ export default function JobList() {
                   </p>
                   {!hasJobs ? (
                     <Link href='/admin/create-job'>
-                      <Button className='mt-4 bg-[#FBC037] text-black'>
+                      <Button className='mt-4 bg-[#FBC037] text-black hover:*:'>
                         Create a new job
                       </Button>
                     </Link>
@@ -232,7 +232,9 @@ export default function JobList() {
             <div className='rounded-3xl bg-black/20 p-6 backdrop-blur-sm text-white'>
               <div className='flex flex-col items-start gap-4'>
                 <div>
-                  <div className='text-lg font-semibold'>Recruit the best candidates</div>
+                  <div className='text-lg font-semibold'>
+                    Recruit the best candidates
+                  </div>
                   <div className='mt-1 text-sm text-white/80'>
                     Create jobs, invite, and hire with ease
                   </div>
