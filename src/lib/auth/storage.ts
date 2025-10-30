@@ -11,6 +11,42 @@ import type {
 
 const DB_PATH = path.join(process.cwd(), 'db.json');
 
+const forceWritable = process.env.FILE_DB_ALLOW_WRITE === '1';
+const forceReadOnly = process.env.FILE_DB_READONLY === '1';
+const runningOnVercel = process.env.VERCEL === '1';
+
+let readOnlyMode = forceWritable ? false : forceReadOnly || runningOnVercel;
+let hasWarnedReadOnly = false;
+
+const logReadOnlyMode = (reason: string) => {
+  if (hasWarnedReadOnly) return;
+  hasWarnedReadOnly = true;
+  console.warn(
+    `[auth-storage] Running in read-only mode (${reason}). Demo auth data will not persist across requests.`
+  );
+};
+
+if (readOnlyMode) {
+  logReadOnlyMode(
+    forceReadOnly
+      ? 'FILE_DB_READONLY flag'
+      : runningOnVercel
+        ? 'Vercel deployment filesystem'
+        : 'configuration'
+  );
+}
+
+const markReadOnlyFromError = (error: NodeJS.ErrnoException) => {
+  readOnlyMode = true;
+  logReadOnlyMode(error.code ?? 'read-only filesystem');
+};
+
+const isReadOnlyFsError = (error: unknown): error is NodeJS.ErrnoException => {
+  if (!error || typeof error !== 'object') return false;
+  const code = (error as NodeJS.ErrnoException).code;
+  return code === 'EROFS' || code === 'EACCES' || code === 'EPERM';
+};
+
 const createUserId = () => crypto.randomUUID();
 
 const normalizeUsers = (users: StoredUser[] | undefined | null): StoredUser[] => {
@@ -56,6 +92,10 @@ const readRawDatabase = async (): Promise<AuthDatabaseFile> => {
 };
 
 const writeDatabase = async (data: AuthDatabaseShape) => {
+  if (readOnlyMode && !forceWritable) {
+    return;
+  }
+
   const serialized = JSON.stringify(
     {
       jobs: data.jobs ?? [],
@@ -65,7 +105,15 @@ const writeDatabase = async (data: AuthDatabaseShape) => {
     null,
     2
   );
-  await fs.writeFile(DB_PATH, `${serialized}\n`, 'utf-8');
+  try {
+    await fs.writeFile(DB_PATH, `${serialized}\n`, 'utf-8');
+  } catch (error) {
+    if (isReadOnlyFsError(error)) {
+      markReadOnlyFromError(error as NodeJS.ErrnoException);
+      return;
+    }
+    throw error;
+  }
 };
 
 export const loadDatabase = async (): Promise<AuthDatabaseShape> => {
