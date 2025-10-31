@@ -5,12 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/toast';
+import { useAppDispatch } from '@/lib/store/hooks';
+import { setDraftApplicationForm, upsertJob } from '@/lib/store/jobsSlice';
 import {
-  appendJobEntry,
   ApplicationFormShape,
   JobEntry,
   loadJobStorage,
-  saveJobStorage,
 } from '@/lib/jobStorage';
 
 interface CreateJobModalProps {
@@ -18,7 +18,6 @@ interface CreateJobModalProps {
   onClose: () => void;
 }
 
-// mapping of internal keys to friendly labels
 const profileFieldMap: Array<{ key: string; label: string }> = [
   { key: 'full_name', label: 'Full name' },
   { key: 'photo_profile', label: 'Photo Profile' },
@@ -52,6 +51,7 @@ export default function CreateJobModal({
   isOpen,
   onClose,
 }: CreateJobModalProps) {
+  const dispatch = useAppDispatch();
   const [jobName, setJobName] = useState('');
   const [jobType, setJobType] = useState('');
   const [description, setDescription] = useState('');
@@ -59,11 +59,9 @@ export default function CreateJobModal({
   const [minSalary, setMinSalary] = useState('');
   const [maxSalary, setMaxSalary] = useState('');
   const { publish } = useToast();
-  // helpers for IDR formatting
   const formatIDR = (value: string) => {
     const digits = String(value).replace(/\D/g, '');
     if (!digits) return '';
-    // insert dot as thousand separator
     const withSep = digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     return `Rp ${withSep}`;
   };
@@ -80,7 +78,6 @@ export default function CreateJobModal({
     if (!isOpen) return;
 
     const ensureApplicationForm = () => {
-      // prefer draft form, then latest job form, then legacy keys, then default
       const storage = loadJobStorage();
       const latestJob = storage.jobs?.[storage.jobs.length - 1];
       const draftForm = storage.draft?.applicationForm;
@@ -110,33 +107,19 @@ export default function CreateJobModal({
 
       const nextForm = resolvedForm ?? DEFAULT_APPLICATION_FORM;
       setApplicationForm(nextForm);
-      saveJobStorage({
-        ...storage,
-        draft: { applicationForm: nextForm },
-      });
+      dispatch(setDraftApplicationForm(nextForm));
     };
 
     ensureApplicationForm();
-  }, [isOpen]);
+  }, [dispatch, isOpen]);
 
-  // helper to persist applicationForm to localStorage
   const persistApplicationForm = (next: ApplicationFormShape) => {
     setApplicationForm(next);
-    try {
-      const storage = loadJobStorage();
-      saveJobStorage({
-        ...storage,
-        draft: { applicationForm: next },
-      });
-    } catch {
-      // ignore localStorage errors
-      // console.warn('Failed to save application_form', e);
-    }
+    dispatch(setDraftApplicationForm(next));
   };
 
   const section = applicationForm?.sections?.[0];
 
-  // helper to get field entry by key
   const getFieldEntry = (key: string) => {
     return section?.fields?.find((field) => field.key === key) ?? null;
   };
@@ -147,7 +130,6 @@ export default function CreateJobModal({
     const fields = Array.isArray(sec.fields) ? [...sec.fields] : [];
     const idx = fields.findIndex((field) => field.key === key);
     if (idx >= 0) {
-      // when setting required/optional, ensure field is visible
       fields[idx] = { ...fields[idx], validation: { required }, hidden: false };
     } else {
       fields.push({ key, validation: { required }, hidden: false });
@@ -159,7 +141,6 @@ export default function CreateJobModal({
     persistApplicationForm(next);
   };
 
-  // mark field as hidden (Off) without removing it from storage
   const setFieldHidden = (key: string, hidden: boolean) => {
     const current = applicationForm ?? DEFAULT_APPLICATION_FORM;
     const sec = current.sections?.[0] ?? { title: '', fields: [] };
@@ -168,7 +149,6 @@ export default function CreateJobModal({
     if (idx >= 0) {
       fields[idx] = { ...fields[idx], hidden };
     } else {
-      // create entry as hidden (default optional)
       fields.push({ key, validation: { required: false }, hidden });
     }
     const next: ApplicationFormShape = {
@@ -179,7 +159,6 @@ export default function CreateJobModal({
   };
 
   const canPublish = useMemo(() => {
-    // basic checks: required job fields must be filled
     if (
       !jobName.trim() ||
       !jobType.trim() ||
@@ -188,8 +167,6 @@ export default function CreateJobModal({
     ) {
       return false;
     }
-    // ensure all applicationForm mandatory fields are present in the form structure (not relevant to job posting inputs)
-    // since this modal edits which profile fields are required, we don't verify applicant values here
     return true;
   }, [jobName, jobType, description, candidates]);
 
@@ -213,7 +190,9 @@ export default function CreateJobModal({
         meta: undefined,
       },
       hiring: {
-        candidatesNeeded: Number.isFinite(candidatesNeeded) ? candidatesNeeded : 0,
+        candidatesNeeded: Number.isFinite(candidatesNeeded)
+          ? candidatesNeeded
+          : 0,
       },
       salary: {
         currency: 'IDR',
@@ -230,7 +209,7 @@ export default function CreateJobModal({
     };
 
     try {
-      const nextStorage = appendJobEntry(jobEntry);
+      dispatch(upsertJob(jobEntry));
 
       if (typeof window !== 'undefined') {
         window.localStorage.setItem('job_posting', JSON.stringify(jobEntry));
@@ -240,10 +219,8 @@ export default function CreateJobModal({
         );
       }
 
-      // quick dev helper so the user can inspect the saved payload
       console.info('Job publish storage snapshot', {
         latestJob: jobEntry,
-        history: nextStorage,
       });
 
       publish({
@@ -253,8 +230,6 @@ export default function CreateJobModal({
       });
       onClose();
     } catch {
-      // fallback: notify user
-      // console.error(e);
       publish({
         title: 'Failed to save job data',
         description: 'Please check storage availability and try again.',
@@ -269,22 +244,18 @@ export default function CreateJobModal({
 
   return (
     <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'>
-      {/* force white background for native select dropdown + option text using a small scoped rule */}
       <style jsx global>{`
-        /* Ensure native select dropdown options render with white bg and dark text on platforms that respect option styling */
         .create-job-select,
         .create-job-select option {
           background: #ffffff !important;
-          color: #111827 !important; /* text-gray-900 */
+          color: #111827 !important;
         }
-        /* Restore menulist appearance on webkit so the control looks like a select */
         .create-job-select {
           -webkit-appearance: menulist-button;
           appearance: menulist-button;
         }
       `}</style>
       <div className='bg-white rounded-lg w-full max-w-4xl mx-4 flex flex-col max-h-[90vh] shadow-lg'>
-        {/* Header */}
         <div className='flex items-center justify-between px-6 py-4 border-b'>
           <h2 className='text-lg font-semibold'>Job Opening</h2>
           <button
@@ -294,7 +265,6 @@ export default function CreateJobModal({
             <X className='w-5 h-5' />
           </button>
         </div>
-        {/* Scrollable content */}
         <div className='px-6 py-6 overflow-y-auto max-h-[70vh] space-y-6'>
           <div className='space-y-2'>
             <Label>Job Name*</Label>
@@ -368,7 +338,6 @@ export default function CreateJobModal({
             </div>
           </div>
 
-          {/* Profile information box: render all possible fields (missing entries default to Off) */}
           <div className='border rounded-lg p-4'>
             <div className='font-semibold mb-4'>
               {section?.title ?? 'Minimum Profile Information Required'}
@@ -434,7 +403,6 @@ export default function CreateJobModal({
           </div>
         </div>
 
-        {/* Footer */}
         <div className='px-6 py-4 border-t flex items-center justify-end'>
           <Button
             onClick={handlePublish}

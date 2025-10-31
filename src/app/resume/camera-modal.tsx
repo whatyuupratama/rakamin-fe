@@ -157,7 +157,6 @@ export default function CameraCaptureModal({
   return (
     <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'>
       <div className='bg-white rounded-lg w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto'>
-        {/* Header */}
         <div className='flex items-center justify-between p-6 border-b'>
           <div className='flex flex-col'>
             <h2 className='text-xl font-semibold'>
@@ -175,11 +174,9 @@ export default function CameraCaptureModal({
           </button>
         </div>
 
-        {/* Content */}
         <div className='p-6'>
           {!capturedImage ? (
             <div className='space-y-4'>
-              {/* Camera Feed */}
               <div className='relative bg-black rounded-lg overflow-hidden aspect-video'>
                 {isLoading && (
                   <div className='absolute inset-0 flex items-center justify-center bg-black'>
@@ -199,14 +196,7 @@ export default function CameraCaptureModal({
                     </div>
                   </div>
                 )}
-
-                {/* Step and Timer Indicator */}
-
-                {/* Status Indicator */}
-
               </div>
-
-              {/* Instructions */}
 
               <div className=''>
                 <p className='text-sm text-black'>
@@ -226,7 +216,6 @@ export default function CameraCaptureModal({
             </div>
           ) : (
             <div className='space-y-4'>
-              {/* Captured Image */}
               <div className='bg-gray-100 rounded-lg overflow-hidden aspect-video'>
                 <Image
                   src={capturedImage || '/placeholder.svg'}
@@ -238,7 +227,6 @@ export default function CameraCaptureModal({
                 />
               </div>
 
-              {/* Buttons */}
               <div className='flex gap-3'>
                 <Button
                   onClick={handleRetake}

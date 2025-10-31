@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { PiMoneyWavy } from 'react-icons/pi';
@@ -8,40 +8,9 @@ import { TiLocationOutline } from 'react-icons/ti';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import {
-  JOB_STORAGE_KEY,
-  loadJobStorage,
-  type JobEntry,
-} from '@/lib/jobStorage';
-
-type ApplicationEntry = {
-  fullName?: string;
-  email?: string;
-  phoneNumber?: string;
-  dateOfBirth?: string | null;
-  domicile?: string;
-  gender?: string;
-  linkedinUrl?: string;
-  submittedAt?: string;
-  jobId?: string | number | null;
-  jobName?: string;
-};
-
-const APPLICATIONS_KEY = 'applications';
-
-const loadApplications = (): ApplicationEntry[] => {
-  if (typeof window === 'undefined') return [];
-  try {
-    const raw = window.localStorage.getItem(APPLICATIONS_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed as ApplicationEntry[];
-  } catch (loadError) {
-    console.warn('Failed to load applications from localStorage', loadError);
-    return [];
-  }
-};
+import type { JobEntry } from '@/lib/jobStorage';
+import type { ApplicationEntry } from '@/lib/applicationStorage';
+import { useAppSelector } from '@/lib/store/hooks';
 
 const formatDate = (value?: string | null) => {
   if (!value) return '-';
@@ -83,54 +52,14 @@ export default function ManageJobPage() {
   const router = useRouter();
   const jobParam = params?.jobId;
   const jobId = jobParam ? decodeURIComponent(String(jobParam)) : '';
+  const jobs = useAppSelector((state) => state.jobs.items);
+  const applications = useAppSelector((state) => state.applications.entries);
 
-  const [job, setJob] = useState<JobEntry | null>(null);
-  const [applications, setApplications] = useState<ApplicationEntry[]>(() =>
-    loadApplications()
-  );
+  const job = useMemo(() => {
+    return jobs.find((entry) => String(entry.id) === jobId) ?? null;
+  }, [jobs, jobId]);
 
-  useEffect(() => {
-    const updateJob = () => {
-      const storage = loadJobStorage();
-      const matched = storage.jobs.find((entry) => String(entry.id) === jobId);
-      setJob(matched ?? null);
-    };
-
-    updateJob();
-
-    const handleStorage = (event: StorageEvent) => {
-      if (event.key === JOB_STORAGE_KEY) {
-        updateJob();
-      }
-    };
-
-    window.addEventListener('storage', handleStorage);
-    window.addEventListener('job-storage:updated', updateJob);
-
-    return () => {
-      window.removeEventListener('storage', handleStorage);
-      window.removeEventListener('job-storage:updated', updateJob);
-    };
-  }, [jobId]);
-
-  useEffect(() => {
-    const handleUpdate = () => setApplications(loadApplications());
-    const handleStorage = (event: StorageEvent) => {
-      if (event.key === APPLICATIONS_KEY) {
-        handleUpdate();
-      }
-    };
-
-    window.addEventListener('storage', handleStorage);
-    window.addEventListener('applications:updated', handleUpdate);
-
-    return () => {
-      window.removeEventListener('storage', handleStorage);
-      window.removeEventListener('applications:updated', handleUpdate);
-    };
-  }, []);
-
-  const filteredCandidates = useMemo(() => {
+  const filteredCandidates = useMemo<ApplicationEntry[]>(() => {
     if (!job) return [];
     const name = job.job.name?.trim().toLowerCase() ?? '';
 

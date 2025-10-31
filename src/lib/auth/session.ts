@@ -3,7 +3,7 @@ import type { StoredUser } from './types';
 import { signJwt, verifyJwt } from './jwt';
 
 export const SESSION_COOKIE_NAME = 'rakamin_session';
-const SESSION_LIFETIME_SECONDS = 60 * 60 * 24 * 7; // 7 days
+const SESSION_LIFETIME_SECONDS = 60 * 60 * 24 * 7;
 
 export interface SessionPayload extends Record<string, unknown> {
   sub: string;

@@ -5,6 +5,8 @@ import type { typeCardJob } from '../type';
 import Link from 'next/link';
 import { PiMoneyWavy } from 'react-icons/pi';
 import { TiLocationOutline } from 'react-icons/ti';
+import { useAppDispatch } from '@/lib/store/hooks';
+import { setActiveJob } from '@/lib/store/jobsSlice';
 
 const DEFAULT_LOGO = '/rakamin.png';
 
@@ -35,20 +37,15 @@ interface JobSummaryProps {
 }
 
 export default function DetailJob({ job }: JobSummaryProps) {
+  const dispatch = useAppDispatch();
   const handleApply = useCallback(() => {
-    try {
-      if (typeof window === 'undefined') return;
-      const payload = {
-        id: job.id ?? null,
-        title: job.job.name ?? 'Unknown role',
-        company: job.job.meta?.company ?? '',
-      };
-      window.localStorage.setItem('active_job', JSON.stringify(payload));
-      window.dispatchEvent(new CustomEvent('active-job:updated'));
-    } catch {
-      // ignore localStorage errors
-    }
-  }, [job]);
+    const payload = {
+      id: job.id ?? null,
+      title: job.job.name ?? 'Unknown role',
+      company: job.job.meta?.company ?? '',
+    };
+    dispatch(setActiveJob(payload));
+  }, [dispatch, job]);
 
   return (
     <div className='w-full h-full min-h-0 border border-gray-300 rounded-xl overflow-y-auto'>

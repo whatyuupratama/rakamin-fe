@@ -1,16 +1,13 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import Link from 'next/link';
 import { IoIosSearch } from 'react-icons/io';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import {
-  JOB_STORAGE_KEY,
-  JobEntry,
-  JobStatus,
-  loadJobStorage,
-} from '@/lib/jobStorage';
+import { JobEntry, JobStatus } from '@/lib/jobStorage';
+import { useAppDispatch, useAppSelector } from '@/lib/store/hooks';
+import { setSearchTerm } from '@/lib/store/jobsSlice';
 
 const statusStyles: Record<
   JobStatus,
@@ -69,45 +66,9 @@ const formatSalaryRange = (entry: JobEntry['salary']) => {
 };
 
 export default function JobList() {
-  const [jobs, setJobs] = useState<JobEntry[]>(() =>
-    loadJobStorage().jobs.slice().reverse()
-  );
-  const [searchText, setSearchText] = useState('');
-
-  const loadJobs = useCallback(() => {
-    const storage = loadJobStorage();
-    setJobs(storage.jobs.slice().reverse());
-  }, []);
-
-  useEffect(() => {
-    const handleStorage = (event: StorageEvent) => {
-      if (event.key === JOB_STORAGE_KEY) {
-        loadJobs();
-      }
-    };
-
-    const handleCustomEvent = () => loadJobs();
-    const handleVisibility = () => {
-      if (document.visibilityState === 'visible') {
-        loadJobs();
-      }
-    };
-
-    window.addEventListener('storage', handleStorage);
-    window.addEventListener('job-storage:updated', handleCustomEvent);
-    document.addEventListener('visibilitychange', handleVisibility);
-
-    const raf = window.requestAnimationFrame(() => {
-      loadJobs();
-    });
-
-    return () => {
-      window.removeEventListener('storage', handleStorage);
-      window.removeEventListener('job-storage:updated', handleCustomEvent);
-      document.removeEventListener('visibilitychange', handleVisibility);
-      window.cancelAnimationFrame(raf);
-    };
-  }, [loadJobs]);
+  const dispatch = useAppDispatch();
+  const jobs = useAppSelector((state) => state.jobs.items);
+  const searchText = useAppSelector((state) => state.jobs.searchTerm);
 
   const filteredJobs = useMemo(() => {
     const keyword = searchText.trim().toLowerCase();
@@ -134,7 +95,9 @@ export default function JobList() {
                 <Input
                   placeholder='Search by job details'
                   value={searchText}
-                  onChange={(event) => setSearchText(event.target.value)}
+                  onChange={(event) =>
+                    dispatch(setSearchTerm(event.target.value))
+                  }
                   className='pl-11 h-12 rounded-2xl border border-slate-200 shadow-sm'
                 />
                 <IoIosSearch className='absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 h-5 w-5' />
@@ -149,7 +112,7 @@ export default function JobList() {
                 {searchText ? (
                   <button
                     className='text-[#01959F] hover:underline'
-                    onClick={() => setSearchText('')}
+                    onClick={() => dispatch(setSearchTerm(''))}
                   >
                     Clear search
                   </button>
@@ -163,7 +126,7 @@ export default function JobList() {
                     return (
                       <div
                         key={job.id}
-                        className='flex items-center gap-4 rounded-3xl border border-slate-100 bg-white px-5 py-4 shadow-sm transition hover:border-slate-200 hover:shadow-md'
+                        className='flex items-center gap-4 rounded-3xl border bg-white px-5 py-4 transition hover:border-slate-200'
                       >
                         <div className='flex-1 min-w-0'>
                           <div className='flex flex-wrap items-center gap-3 text-xs text-slate-400'>
@@ -175,7 +138,7 @@ export default function JobList() {
                               />
                               {theme.label}
                             </span>
-                            <span className='text-slate-400'>
+                            <span className='text-slate-400 capitalize'>
                               started on {formatDate(job.metadata.createdAt)}
                             </span>
                           </div>

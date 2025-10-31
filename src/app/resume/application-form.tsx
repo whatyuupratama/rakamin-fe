@@ -24,10 +24,11 @@ import SubmitSuccess from '@/components/SubmitSuccess';
 import { useRouter } from 'next/navigation';
 import { IoArrowBackSharp } from 'react-icons/io5';
 import Link from 'next/link';
+import { type ApplicationEntry } from '@/lib/applicationStorage';
+import { useAppDispatch, useAppSelector } from '@/lib/store/hooks';
+import { addApplication } from '@/lib/store/applicationsSlice';
 
 const STORAGE_KEY = 'applicationFormData';
-const APPLICATIONS_KEY = 'applications';
-const ACTIVE_JOB_KEY = 'active_job';
 
 type FormDataState = {
   fullName: string;
@@ -41,27 +42,6 @@ type FormDataState = {
   photoProfile: string | null;
 };
 
-type ActiveJobState = {
-  id: string | null;
-  title: string;
-  company: string;
-} | null;
-
-interface StoredApplication {
-  fullName: string;
-  dateOfBirth: string | null;
-  gender: string;
-  domicile: string;
-  countryCode: string;
-  phoneNumber: string;
-  email: string;
-  linkedinUrl: string;
-  photoProfile: string | null;
-  submittedAt: string;
-  jobId: string | null;
-  jobName: string;
-}
-
 const createEmptyFormData = (): FormDataState => ({
   fullName: '',
   dateOfBirth: undefined,
@@ -73,28 +53,6 @@ const createEmptyFormData = (): FormDataState => ({
   linkedinUrl: '',
   photoProfile: null,
 });
-
-const readActiveJobFromStorage = (): ActiveJobState => {
-  if (typeof window === 'undefined') return null;
-  try {
-    const raw = window.localStorage.getItem(ACTIVE_JOB_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as {
-      id?: string | null;
-      title?: string;
-      company?: string;
-    } | null;
-    if (!parsed || typeof parsed !== 'object') return null;
-    return {
-      id: parsed.id ?? null,
-      title: String(parsed.title ?? 'Unknown role'),
-      company: String(parsed.company ?? 'Rakamin'),
-    };
-  } catch (error) {
-    console.warn('Failed to read active job from localStorage', error);
-    return null;
-  }
-};
 
 const readFormDataFromStorage = (): FormDataState => {
   if (typeof window === 'undefined') return createEmptyFormData();
@@ -125,31 +83,11 @@ const serializeFormData = (value: FormDataState) => ({
 
 export default function ApplicationForm() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const [formData, setFormData] = useState<FormDataState>(() =>
     readFormDataFromStorage()
   );
-  const [activeJob, setActiveJob] = useState<ActiveJobState>(() =>
-    readActiveJobFromStorage()
-  );
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const handleActiveJobUpdate = () => {
-      setActiveJob(readActiveJobFromStorage());
-    };
-
-    const raf = window.requestAnimationFrame(() => {
-      handleActiveJobUpdate();
-    });
-
-    window.addEventListener('active-job:updated', handleActiveJobUpdate);
-
-    return () => {
-      window.cancelAnimationFrame(raf);
-      window.removeEventListener('active-job:updated', handleActiveJobUpdate);
-    };
-  }, []);
+  const activeJob = useAppSelector((state) => state.jobs.activeJob);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -232,38 +170,27 @@ export default function ApplicationForm() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      if (typeof window !== 'undefined') {
-        try {
-          const entry: StoredApplication = {
-            ...serializeFormData(formData),
-            submittedAt: new Date().toISOString(),
-            jobId: activeJob?.id ?? null,
-            jobName: activeJob?.title ?? '',
-          };
+      try {
+        const entry: ApplicationEntry = {
+          ...serializeFormData(formData),
+          submittedAt: new Date().toISOString(),
+          jobId: activeJob?.id ?? null,
+          jobName: activeJob?.title ?? '',
+          countryCode: formData.countryCode,
+          photoProfile: formData.photoProfile,
+        };
 
-          const appsRaw = window.localStorage.getItem(APPLICATIONS_KEY);
-          const apps = appsRaw
-            ? (JSON.parse(appsRaw) as StoredApplication[])
-            : [];
-          const updated = [...apps, entry];
-          window.localStorage.setItem(
-            APPLICATIONS_KEY,
-            JSON.stringify(updated)
-          );
-          window.dispatchEvent(new CustomEvent('applications:updated'));
-        } catch (error) {
-          console.error('Failed to save application to localStorage', error);
-        }
+        dispatch(addApplication(entry));
+      } catch (error) {
+        console.error('Failed to save application to localStorage', error);
       }
 
-      // show success screen instead of alert
       setShowSuccess(true);
       setTimeout(() => {
         setShowSuccess(false);
         router.push('/user');
       }, 3000);
 
-      // reset form to empty/default values after successful submit
       const emptyForm = {
         fullName: '',
         dateOfBirth: undefined as Date | undefined,
@@ -286,7 +213,6 @@ export default function ApplicationForm() {
 
   return (
     <div className='min-h-screen bg-background'>
-      {/* center container: full viewport height to allow internal scrolling */}
       <div className='max-w-3xl mx-auto px-4 py-6 h-screen flex flex-col'>
         <Card className='p-8 flex-1 flex flex-col overflow-hidden'>
           <div className='flex items-center gap-4 mb-4'>
@@ -310,7 +236,6 @@ export default function ApplicationForm() {
             style={{ maxHeight: 'calc(100vh - 260px)' }}
           >
             <form onSubmit={handleSubmit} className='space-y-6'>
-              {/* Photo Profile Section */}
               <div>
                 <Label className='text-red-500'>* Required</Label>
                 <div className='mt-4 space-y-4'>
@@ -345,7 +270,6 @@ export default function ApplicationForm() {
                 </div>
               </div>
 
-              {/* Full Name */}
               <div>
                 <Label htmlFor='fullName' className='text-sm font-medium'>
                   Full name<span className='text-red-500'>*</span>
@@ -363,7 +287,6 @@ export default function ApplicationForm() {
                 )}
               </div>
 
-              {/* Date of Birth */}
               <div>
                 <Label className='text-sm font-medium'>
                   Date of birth<span className='text-red-500'>*</span>
@@ -404,7 +327,6 @@ export default function ApplicationForm() {
                 )}
               </div>
 
-              {/* Gender */}
               <div>
                 <Label className='text-sm font-medium'>
                   Pronoun (gender)<span className='text-red-500'>*</span>
@@ -444,7 +366,6 @@ export default function ApplicationForm() {
                 )}
               </div>
 
-              {/* Domicile with Search */}
               <div>
                 <Label htmlFor='domicile' className='text-sm font-medium'>
                   Domicile<span className='text-red-500'>*</span>
@@ -519,7 +440,6 @@ export default function ApplicationForm() {
                 )}
               </div>
 
-              {/* Phone Number with Searchable Country Code */}
               <div>
                 <Label className='text-sm font-medium'>
                   Phone number<span className='text-red-500'>*</span>
@@ -612,7 +532,6 @@ export default function ApplicationForm() {
                 )}
               </div>
 
-              {/* Email */}
               <div>
                 <Label htmlFor='email' className='text-sm font-medium'>
                   Email<span className='text-red-500'>*</span>
@@ -631,7 +550,6 @@ export default function ApplicationForm() {
                 )}
               </div>
 
-              {/* LinkedIn URL */}
               <div>
                 <Label htmlFor='linkedinUrl' className='text-sm font-medium'>
                   Link LinkedIn<span className='text-red-500'>*</span>

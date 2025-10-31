@@ -53,7 +53,7 @@ const variantConfig: Record<
 };
 
 const baseToastClasses =
-  'w-full max-w-sm rounded-2xl border bg-white px-4 py-3 shadow-lg shadow-black/5 '; // trailing space for variants
+  'w-full max-w-sm rounded-2xl border bg-white px-4 py-3 shadow-lg shadow-black/5 ';
 
 export function ToastProvider({ children }: PropsWithChildren) {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);

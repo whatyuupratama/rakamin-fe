@@ -6,10 +6,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { IoIosLogOut } from 'react-icons/io';
 
-// interface NavbarProps {
-//   userEmail?: string;
-// }
-
 const Navbar: React.FC = () => {
   const router = useRouter();
   const [nextIsAdmin, setNextIsAdmin] = useState(true);
@@ -38,7 +34,6 @@ const Navbar: React.FC = () => {
                 onClick={() => setNextIsAdmin((v) => !v)}
               >
                 <Image
-                  // show which profile will be navigated to next (simple visual cue)
                   src={nextIsAdmin ? '/admin.png' : '/rakamin.png'}
                   alt={nextIsAdmin ? '/user.jpeg' : '/rakamin.png'}
                   width={36}
@@ -46,9 +41,6 @@ const Navbar: React.FC = () => {
                   className='rounded-full w-9 h-9 object-cover border border-gray-300'
                 />
               </Link>
-              {/* {userEmail ? (
-                <span className='text-sm text-gray-600 hidden sm:inline'>{userEmail}</span>
-              ) : null} */}
               <button
                 type='button'
                 onClick={handleLogout}

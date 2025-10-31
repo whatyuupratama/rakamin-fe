@@ -8,7 +8,7 @@ import {
 } from './storage';
 import type { MagicLinkPurpose } from './types';
 
-const MAGIC_LINK_TTL_MS = 30 * 60 * 1000; // 30 minutes
+const MAGIC_LINK_TTL_MS = 30 * 60 * 1000;
 
 const hashToken = (token: string) =>
   crypto.createHash('sha256').update(token).digest('hex');

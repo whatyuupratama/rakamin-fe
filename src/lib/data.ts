@@ -1,9 +1,5 @@
-// ...existing code...
-// Cleaned data file: INDONESIAN_DISTRICTS is exported without duplicates
 
-// Source list (kept for readability) — final export will remove duplicates while preserving first occurrence order.
 const _RAW_INDONESIAN_DISTRICTS = [
-  // Aceh
   'Aceh Barat',
   'Aceh Barat Daya',
   'Aceh Jaya',
@@ -18,7 +14,6 @@ const _RAW_INDONESIAN_DISTRICTS = [
   'Langsa',
   'Lhokseumawe',
   'Sabang',
-  // Sumatera Utara
   'Asahan',
   'Batubara',
   'Dairi',
@@ -50,7 +45,6 @@ const _RAW_INDONESIAN_DISTRICTS = [
   'Sibolga',
   'Tanjungbalai',
   'Tebing Tinggi',
-  // Sumatera Barat
   'Agam',
   'Dharmasraya',
   'Kepulauan Mentawai',
@@ -70,7 +64,6 @@ const _RAW_INDONESIAN_DISTRICTS = [
   'Payakumbuh',
   'Sawahlunto',
   'Solok Kota',
-  // Riau
   'Bengkalis',
   'Indragiri Hilir',
   'Indragiri Hulu',
@@ -83,7 +76,6 @@ const _RAW_INDONESIAN_DISTRICTS = [
   'Siak',
   'Dumai',
   'Pekanbaru',
-  // Jambi
   'Batang Hari',
   'Bungo',
   'Kerinci',
@@ -95,7 +87,6 @@ const _RAW_INDONESIAN_DISTRICTS = [
   'Tebo',
   'Jambi',
   'Sungai Penuh',
-  // Sumatera Selatan
   'Banyuasin',
   'Empat Lawang',
   'Lahat',
@@ -111,7 +102,6 @@ const _RAW_INDONESIAN_DISTRICTS = [
   'Palembang',
   'Prabumulih',
   'Lubuklinggau',
-  // Bengkulu
   'Bengkulu Selatan',
   'Bengkulu Tengah',
   'Bengkulu Utara',
@@ -122,7 +112,6 @@ const _RAW_INDONESIAN_DISTRICTS = [
   'Rejang Lebong',
   'Seluma',
   'Bengkulu',
-  // Lampung
   'Lampung Barat',
   'Lampung Selatan',
   'Lampung Tengah',
@@ -136,7 +125,6 @@ const _RAW_INDONESIAN_DISTRICTS = [
   'Tulang Bawang Barat',
   'Bandar Lampung',
   'Metro',
-  // Kepulauan Bangka Belitung
   'Bangka',
   'Bangka Barat',
   'Bangka Selatan',
@@ -144,7 +132,6 @@ const _RAW_INDONESIAN_DISTRICTS = [
   'Belitung',
   'Belitung Timur',
   'Pangkal Pinang',
-  // Kepulauan Riau
   'Bintan',
   'Karimun',
   'Kepulauan Anambas',
@@ -152,14 +139,12 @@ const _RAW_INDONESIAN_DISTRICTS = [
   'Natuna',
   'Batam',
   'Tanjung Pinang',
-  // DKI Jakarta
   'Jakarta Barat',
   'Jakarta Pusat',
   'Jakarta Selatan',
   'Jakarta Timur',
   'Jakarta Utara',
   'Kepulauan Seribu',
-  // Jawa Barat
   'Bandung',
   'Bandung Barat',
   'Bekasi',
@@ -185,7 +170,6 @@ const _RAW_INDONESIAN_DISTRICTS = [
   'Depok',
   'Sukabumi Kota',
   'Tasikmalaya Kota',
-  // Jawa Tengah
   'Banjarnegara',
   'Banyumas',
   'Batang',
@@ -224,11 +208,9 @@ const _RAW_INDONESIAN_DISTRICTS = [
   'Temanggung',
   'Wonogiri',
   'Wonosobo',
-  // DI Yogyakarta
   'Bantul',
   'Gunung Kidul',
   'Yogyakarta',
-  // Jawa Timur
   'Bangkalan',
   'Banyuwangi',
   'Blitar',
@@ -267,7 +249,6 @@ const _RAW_INDONESIAN_DISTRICTS = [
   'Trenggalek',
   'Tuban',
   'Tulungagung',
-  // Bali
   'Badung',
   'Bangli',
   'Buleleng',
@@ -277,7 +258,6 @@ const _RAW_INDONESIAN_DISTRICTS = [
   'Klungkung',
   'Tabanan',
   'Denpasar',
-  // Nusa Tenggara Barat
   'Bima',
   'Bima Kota',
   'Dompu',
@@ -288,7 +268,6 @@ const _RAW_INDONESIAN_DISTRICTS = [
   'Mataram',
   'Sumbawa',
   'Sumbawa Barat',
-  // Nusa Tenggara Timur
   'Alor',
   'Ambon',
   'Belu',
@@ -313,7 +292,6 @@ const _RAW_INDONESIAN_DISTRICTS = [
   'Sumba Tengah',
   'Timor Tengah Selatan',
   'Timor Tengah Utara',
-  // Kalimantan Barat
   'Bengkayang',
   'Capuas',
   'Kayong Utara',
@@ -327,7 +305,6 @@ const _RAW_INDONESIAN_DISTRICTS = [
   'Sanggau',
   'Sekadau',
   'Sintang',
-  // Kalimantan Tengah
   'Barito Selatan',
   'Barito Timur',
   'Barito Utara',
@@ -342,7 +319,6 @@ const _RAW_INDONESIAN_DISTRICTS = [
   'Pulang Pisau',
   'Sukamara',
   'Seruyan',
-  // Kalimantan Selatan
   'Balangan',
   'Banjar',
   'Banjar Kota',
@@ -356,7 +332,6 @@ const _RAW_INDONESIAN_DISTRICTS = [
   'Tanah Laut',
   'Banjarmasin',
   'Banjarbaru',
-  // Kalimantan Timur
   'Berau',
   'Bulungan',
   'Kutai Barat',
@@ -369,9 +344,7 @@ const _RAW_INDONESIAN_DISTRICTS = [
   'Penajam Paser Utara Kota',
   'Samarinda',
   'Tarakan',
-  // Kalimantan Utara
   'Tana Tidung',
-  // Sulawesi Utara
   'Bolaang Mongondow',
   'Bolaang Mongondow Selatan',
   'Bolaang Mongondow Timur',
@@ -384,7 +357,6 @@ const _RAW_INDONESIAN_DISTRICTS = [
   'Minahasa Tenggara',
   'Minahasa Utara',
   'Tomohon',
-  // Sulawesi Tengah
   'Banggai',
   'Banggai Kepulauan',
   'Banggai Laut',
@@ -398,7 +370,6 @@ const _RAW_INDONESIAN_DISTRICTS = [
   'Tojo Una-Una',
   'Toli-Toli',
   'Palu',
-  // Sulawesi Selatan
   'Bantaeng',
   'Barru',
   'Bone',
@@ -423,7 +394,6 @@ const _RAW_INDONESIAN_DISTRICTS = [
   'Tana Toraja Utara',
   'Toraja Utara',
   'Wajo',
-  // Sulawesi Tenggara
   'Bombana',
   'Buton',
   'Buton Selatan',
@@ -441,14 +411,12 @@ const _RAW_INDONESIAN_DISTRICTS = [
   'Wakatobi',
   'Bau-Bau',
   'Kendari',
-  // Gorontalo
   'Boalemo',
   'Bone Bolango',
   'Gorontalo',
   'Gorontalo Utara',
   'Pohuwato',
   'Gorontalo Kota',
-  // Maluku
   'Ambon',
   'Buru',
   'Buru Selatan',
@@ -461,7 +429,6 @@ const _RAW_INDONESIAN_DISTRICTS = [
   'Seram Bagian Barat',
   'Seram Bagian Timur',
   'Tual',
-  // Maluku Utara
   'Halmahera Barat',
   'Halmahera Selatan',
   'Halmahera Tengah',
@@ -471,7 +438,6 @@ const _RAW_INDONESIAN_DISTRICTS = [
   'Pulau Morotai',
   'Ternate',
   'Tidore Kepulauan',
-  // Papua Barat
   'Arfak',
   'Fakfak',
   'Kaimana',
@@ -486,7 +452,6 @@ const _RAW_INDONESIAN_DISTRICTS = [
   'Tambrauw',
   'Teluk Bintuni',
   'Teluk Wondama',
-  // Papua
   'Asmat',
   'Biak Numfor',
   'Biak Timur',
@@ -515,19 +480,14 @@ const _RAW_INDONESIAN_DISTRICTS = [
   'Waropen',
   'Yahukimo',
   'Yalimo',
-  // Papua Selatan
   'Boven Digoel',
   'Bade',
-  // Papua Tengah
-  // (entries already included above)
 ];
 
-// Export deduped list preserving first occurrence order
 export const INDONESIAN_DISTRICTS = Array.from(
   new Set(_RAW_INDONESIAN_DISTRICTS)
 );
 
-// Country Codes (unchanged)
 export const COUNTRY_CODES = [
   { code: '+62', flag: '🇮🇩', country: 'Indonesia' },
   { code: '+1', flag: '🇺🇸', country: 'United States' },

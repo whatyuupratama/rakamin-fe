@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { TiLocationOutline } from 'react-icons/ti';
 import { PiMoneyWavy } from 'react-icons/pi';
 import Image from 'next/image';
@@ -8,11 +8,8 @@ import Image from 'next/image';
 import DetailJob from './features/DetailJob';
 import NotFound from '@/app/user/components/notFound';
 import type { typeCardJob } from './type';
-import {
-  JOB_STORAGE_KEY,
-  loadJobStorage,
-  type JobEntry,
-} from '@/lib/jobStorage';
+import type { JobEntry } from '@/lib/jobStorage';
+import { useAppSelector } from '@/lib/store/hooks';
 
 const DEFAULT_LOGO = '/rakamin.png';
 
@@ -37,54 +34,8 @@ const formatSalary = (job: JobEntry) => {
 };
 
 const Page: React.FC = () => {
-  const [jobs, setJobs] = useState<typeCardJob[]>(() =>
-    loadJobStorage().jobs.slice().reverse()
-  );
-  const [selectedJob, setSelectedJob] = useState<typeCardJob | null>(() => {
-    const initialJobs = loadJobStorage().jobs.slice().reverse();
-    return initialJobs[0] ?? null;
-  });
-
-  const syncJobs = useCallback(() => {
-    const storage = loadJobStorage();
-    const nextJobs = storage.jobs.slice().reverse();
-    setJobs(nextJobs);
-    setSelectedJob((prev) => {
-      if (!prev) return nextJobs[0] ?? null;
-      const matched = nextJobs.find((entry) => entry.id === prev.id);
-      return matched ?? nextJobs[0] ?? null;
-    });
-  }, []);
-
-  useEffect(() => {
-    const handleStorage = (event: StorageEvent) => {
-      if (event.key === JOB_STORAGE_KEY) {
-        syncJobs();
-      }
-    };
-
-    const handleCustomEvent = () => syncJobs();
-    const handleVisibility = () => {
-      if (document.visibilityState === 'visible') {
-        syncJobs();
-      }
-    };
-
-    window.addEventListener('storage', handleStorage);
-    window.addEventListener('job-storage:updated', handleCustomEvent);
-    document.addEventListener('visibilitychange', handleVisibility);
-
-    const raf = window.requestAnimationFrame(() => {
-      syncJobs();
-    });
-
-    return () => {
-      window.removeEventListener('storage', handleStorage);
-      window.removeEventListener('job-storage:updated', handleCustomEvent);
-      document.removeEventListener('visibilitychange', handleVisibility);
-      window.cancelAnimationFrame(raf);
-    };
-  }, [syncJobs]);
+  const jobs = useAppSelector((state) => state.jobs.items);
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
 
   const formattedJobs = useMemo(() => {
     return jobs.map((entry) => ({
@@ -95,7 +46,16 @@ const Page: React.FC = () => {
     }));
   }, [jobs]);
 
-  const handleSelectJob = (job: JobEntry) => setSelectedJob(job);
+  const selectedJob = useMemo<typeCardJob | null>(() => {
+    if (!jobs.length) return null;
+    if (selectedJobId) {
+      const matched = jobs.find((entry) => String(entry.id) === selectedJobId);
+      if (matched) return matched;
+    }
+    return jobs[0];
+  }, [jobs, selectedJobId]);
+
+  const handleSelectJob = (job: JobEntry) => setSelectedJobId(String(job.id));
 
   return (
     <div className='flex gap-6 items-start p-6 h-[calc(100vh-64px)] min-h-0 scroll-smooth'>
